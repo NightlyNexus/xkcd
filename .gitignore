@@ -1,6 +1,39 @@
+# Generated temporary files
+*.class
+target
+bin
+gen
+local.properties
+default.properties
+gen-external-apklibs
+
+# Gradle
 .gradle
 /local.properties
-/.idea/workspace.xml
-/.idea/libraries
-.DS_Store
 /build
+
+# IDE files
+*.iml
+.idea
+out
+*.tmproj
+
+# OS specific files
+*~
+.DS_Store
+
+# Data pulled out of device with scripts/pullfiles.bash
+scripts/apps
+scripts/backup.ab
+
+# Node modules for the js
+www/node_modules
+www/bundle*.js
+www/abusefilter.js
+www/preview.js
+www/styles.css
+www/abusefilter.css
+www/preview.css
+
+# Should never check in apk files
+*.apk
