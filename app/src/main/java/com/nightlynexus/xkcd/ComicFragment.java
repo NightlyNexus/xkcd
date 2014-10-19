@@ -3,13 +3,16 @@ package com.nightlynexus.xkcd;
 import android.app.Fragment;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.Spanned;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -17,15 +20,25 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.ShareActionProvider;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import retrofit.Callback;
 import retrofit.RestAdapter;
@@ -35,10 +48,12 @@ import retrofit.client.Response;
 public class ComicFragment extends Fragment {
 
     private static final String ENDPOINT = "http://xkcd.com";
+    private static final String DIRECTORY_NAME = "xkcd";
     private static final String KEY_MAX = "KEY_MAX";
     private static final String KEY_POSITION = "KEY_POSITION";
 
     private ComicService mRestService;
+    private EditText mNumberPicker;
     private ViewPager mViewPager;
     private PagerAdapter mAdapter;
     private ShareActionProvider mShareActionProvider = null;
@@ -57,6 +72,7 @@ public class ComicFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_comic, container, false);
+        mNumberPicker = (EditText) rootView.findViewById(R.id.number_picker);
         mViewPager = (ViewPager) rootView.findViewById(R.id.view_pager);
         return rootView;
     }
@@ -64,8 +80,10 @@ public class ComicFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        mNumberPicker.setEnabled(false);
         if (savedInstanceState != null && savedInstanceState.getInt(KEY_MAX) >= 0
                 && savedInstanceState.getInt(KEY_POSITION) >= 0) {
+            setupNumberPicker(savedInstanceState.getInt(KEY_MAX));
             setupAdapter(savedInstanceState.getInt(KEY_MAX),
                     savedInstanceState.getInt(KEY_POSITION));
         } else {
@@ -74,6 +92,7 @@ public class ComicFragment extends Fragment {
                 @Override
                 public void success(Comic comic, Response response) {
                     if (isDetached()) return;
+                    setupNumberPicker(comic.getNum());
                     setupAdapter(comic.getNum(), comic.getNum() - 1);
                 }
 
@@ -85,11 +104,55 @@ public class ComicFragment extends Fragment {
         }
     }
 
+    private void setupNumberPicker(final int numMax) {
+        final InputFilter filters[] = new InputFilter[] { new InputFilter() {
+
+            @Override
+            public CharSequence filter(CharSequence source, int start, int end,
+                                       Spanned dest, int dstart, int dend) {
+                final String str = dest.toString().substring(0, dstart)
+                        + source.toString().substring(start, end)
+                        + dest.toString().substring(dend);
+                if (str.length() == 0) return source.subSequence(start, end);
+                try {
+                    final int number = Integer.parseInt(str);
+                    if (number < 1 || number > numMax) {
+                        return dest.subSequence(dstart, dend);
+                    }
+                    return source.subSequence(start, end);
+                } catch (NumberFormatException nfe) {
+                    return dest.subSequence(dstart, dend);
+                }
+            }
+        } };
+        mNumberPicker.setFilters(filters);
+        mNumberPicker.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (s.length() > 0) {
+                    mViewPager.setCurrentItem(Integer.parseInt(s.toString()) - 1);
+                }
+            }
+        });
+        mNumberPicker.setEnabled(true);
+    }
+
     private void setupAdapter(final int num, final int position) {
         mAdapter = new PagerAdapter() {
 
             @Override
-            public Object instantiateItem(ViewGroup container, int position) {
+            public Object instantiateItem(ViewGroup container, final int position) {
                 final RelativeLayout rl = new RelativeLayout(getActivity());
                 final RelativeLayout.LayoutParams params0
                         = new RelativeLayout.LayoutParams(
@@ -112,30 +175,54 @@ public class ComicFragment extends Fragment {
                 ll.setGravity(Gravity.CENTER);
                 ll.setOrientation(LinearLayout.VERTICAL);
                 final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                        ScrollView.LayoutParams.MATCH_PARENT,
-                        ScrollView.LayoutParams.WRAP_CONTENT);
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT);
                 params.gravity = Gravity.CENTER;
                 titleView.setLayoutParams(params);
+                titleView.setPadding(0, 0, 0,
+                        (int) getResources().getDimension(R.dimen.padding_bottom_title));
                 titleView.setGravity(Gravity.CENTER);
                 titleView.setTypeface(titleView.getTypeface(), Typeface.BOLD);
                 progress.setVisibility(View.VISIBLE);
+                final ImageView iv = getImageView();
+                iv.setVisibility(View.GONE);
+                final TextView dateView = getDateView();
                 tv.setLayoutParams(params);
+                tv.setPadding(0,
+                        (int) getResources().getDimension(R.dimen.padding_top_alt_text), 0, 0);
                 tv.setGravity(Gravity.CENTER);
                 mRestService.getComic(position + 1, new Callback<Comic>() {
 
                     @Override
-                    public void success(Comic comic, Response response) {
+                    public void success(final Comic comic, Response response) {
                         if (isDetached()) return;
                         titleView.setText(comic.getTitle());
                         tv.setText(comic.getAlt());
+                        dateView.setText(comic.getDate());
                         final Target target = new Target() {
 
                             @Override
-                            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                            public void onBitmapLoaded(final Bitmap bitmap,
+                                                       Picasso.LoadedFrom from) {
                                 if (isDetached()) return;
                                 progress.setVisibility(View.GONE);
-                                tv.setCompoundDrawablesWithIntrinsicBounds(null,
-                                        new BitmapDrawable(getResources(), bitmap), null, null);
+                                iv.setOnLongClickListener(new View.OnLongClickListener() {
+
+                                    @Override
+                                    public boolean onLongClick(View v) {
+                                        final String comicName
+                                                = position + 1 + " -- " + comic.getTitle();
+                                        if (saveBitmap(bitmap, comicName)) {
+                                            Toast.makeText(getActivity(),
+                                                    getString(R.string.saved_comic_confirmation,
+                                                            comicName),
+                                                    Toast.LENGTH_LONG).show();
+                                        }
+                                        return true;
+                                    }
+                                });
+                                iv.setImageBitmap(bitmap);
+                                iv.setVisibility(View.VISIBLE);
                             }
 
                             @Override
@@ -159,7 +246,9 @@ public class ComicFragment extends Fragment {
                 });
                 ll.addView(titleView);
                 ll.addView(progress);
+                ll.addView(iv);
                 ll.addView(tv);
+                ll.addView(dateView);
                 sv.addView(ll);
                 rl.addView(sv);
                 container.addView(rl);
@@ -192,6 +281,8 @@ public class ComicFragment extends Fragment {
             public void onPageSelected(int i) {
                 if (mShareActionProvider != null)
                     mShareActionProvider.setShareIntent(getShareIntent());
+                mNumberPicker.setText(String.valueOf(i + 1));
+                mNumberPicker.setSelection(mNumberPicker.length());
             }
 
             @Override
@@ -226,5 +317,54 @@ public class ComicFragment extends Fragment {
         outState.putInt(KEY_MAX, mAdapter == null ? -1 : mAdapter.getCount());
         outState.putInt(KEY_POSITION, mAdapter == null ? -1 : mViewPager.getCurrentItem());
         super.onSaveInstanceState(outState);
+    }
+
+    private ImageView getImageView() {
+        final LinearLayout.LayoutParams paramsImage = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        final ImageView iv = new ImageView(getActivity());
+        iv.setLayoutParams(paramsImage);
+        iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        iv.setAdjustViewBounds(true);
+        return iv;
+    }
+
+    private TextView getDateView() {
+        final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.gravity = Gravity.END;
+        final TextView dateView = new TextView(getActivity());
+        dateView.setLayoutParams(params);
+        dateView.setPadding(0,
+                (int) getResources().getDimension(R.dimen.padding_top_date), 0, 0);
+        dateView.setGravity(Gravity.CENTER);
+        dateView.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+        return dateView;
+    }
+
+    private boolean saveBitmap(final Bitmap bmp, final String comicName) {
+        final String filename = Environment.getExternalStorageDirectory().getPath()
+                + "/" + DIRECTORY_NAME + "/" + comicName + ".png";
+        boolean success = false;
+        FileOutputStream out = null;
+        try {
+            new File(filename).getParentFile().mkdirs();
+            out = new FileOutputStream(filename);
+            bmp.compress(Bitmap.CompressFormat.PNG, 90, out);
+            success = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return success;
     }
 }

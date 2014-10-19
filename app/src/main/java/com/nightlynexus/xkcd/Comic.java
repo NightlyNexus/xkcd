@@ -1,5 +1,10 @@
 package com.nightlynexus.xkcd;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class Comic {
 
     private final int num;
@@ -13,7 +18,6 @@ public class Comic {
     private final String day;
     private final String month;
     private final String year;
-
 
     public Comic(int num, String link, String news, String safeTitle,
                  String title, String transcript, String alt, String img,
@@ -73,5 +77,15 @@ public class Comic {
 
     public String getYear() {
         return year;
+    }
+
+    public String getDate() {
+        try {
+            final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
+            final SimpleDateFormat df2 = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+            return df2.format(format.parse(day + "-" + month + "-" + year));
+        } catch (ParseException e) {
+            return null;
+        }
     }
 }

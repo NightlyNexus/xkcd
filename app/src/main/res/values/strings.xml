@@ -3,5 +3,6 @@
 
     <string name="app_name">xkcd</string>
     <string name="action_share">Share</string>
+    <string name="saved_comic_confirmation">%1$s saved to /xkcd</string>
 
 </resources>
