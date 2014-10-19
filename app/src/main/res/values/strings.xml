@@ -4,5 +4,8 @@
     <string name="app_name">xkcd</string>
     <string name="action_share">Share</string>
     <string name="saved_comic_confirmation">%1$s saved to /xkcd</string>
+    <string name="comic_content_description">xkcd comic</string>
+    <string name="previous_comic">previous comic</string>
+    <string name="next_comic">next comic</string>
 
 </resources>

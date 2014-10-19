@@ -6,13 +6,40 @@
     android:layout_height="match_parent"
     tools:context=".ComicFragment">
 
-    <EditText
-        android:id="@+id/number_picker"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:imeOptions="flagNoExtractUi"
-        android:inputType="number"/>
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin">
+
+        <ImageView
+            android:id="@+id/previous"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:contentDescription="@string/previous_comic"
+            android:src="@drawable/ic_action_previous_item"/>
+
+        <EditText
+            android:id="@+id/number_picker"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:imeOptions="flagNoExtractUi"
+            android:inputType="number"/>
+
+        <ImageView
+            android:id="@+id/next"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:contentDescription="@string/next_comic"
+            android:src="@drawable/ic_action_next_item"/>
+
+    </LinearLayout>
 
     <android.support.v4.view.ViewPager
         android:id="@+id/view_pager"

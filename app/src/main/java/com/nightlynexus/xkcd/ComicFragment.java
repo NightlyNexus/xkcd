@@ -54,6 +54,8 @@ public class ComicFragment extends Fragment {
 
     private ComicService mRestService;
     private EditText mNumberPicker;
+    private View mPreviousView;
+    private View mNextView;
     private ViewPager mViewPager;
     private PagerAdapter mAdapter;
     private ShareActionProvider mShareActionProvider = null;
@@ -73,6 +75,8 @@ public class ComicFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_comic, container, false);
         mNumberPicker = (EditText) rootView.findViewById(R.id.number_picker);
+        mPreviousView = rootView.findViewById(R.id.previous);
+        mNextView = rootView.findViewById(R.id.next);
         mViewPager = (ViewPager) rootView.findViewById(R.id.view_pager);
         return rootView;
     }
@@ -81,6 +85,8 @@ public class ComicFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mNumberPicker.setEnabled(false);
+        mPreviousView.setEnabled(false);
+        mNextView.setEnabled(false);
         if (savedInstanceState != null && savedInstanceState.getInt(KEY_MAX) >= 0
                 && savedInstanceState.getInt(KEY_POSITION) >= 0) {
             setupNumberPicker(savedInstanceState.getInt(KEY_MAX));
@@ -145,6 +151,22 @@ public class ComicFragment extends Fragment {
                 }
             }
         });
+        mPreviousView.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                mViewPager.setCurrentItem(mViewPager.getCurrentItem() - 1);
+            }
+        });
+        mNextView.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
+            }
+        });
+        mPreviousView.setEnabled(true);
+        mNextView.setEnabled(true);
         mNumberPicker.setEnabled(true);
     }
 
@@ -283,6 +305,8 @@ public class ComicFragment extends Fragment {
                     mShareActionProvider.setShareIntent(getShareIntent());
                 mNumberPicker.setText(String.valueOf(i + 1));
                 mNumberPicker.setSelection(mNumberPicker.length());
+                mPreviousView.setEnabled(i > 0);
+                mNextView.setEnabled(i < num - 1);
             }
 
             @Override
@@ -327,6 +351,8 @@ public class ComicFragment extends Fragment {
         iv.setLayoutParams(paramsImage);
         iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
         iv.setAdjustViewBounds(true);
+        iv.setContentDescription(getString(
+                R.string.comic_content_description));
         return iv;
     }
 
