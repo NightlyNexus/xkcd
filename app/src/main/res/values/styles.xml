@@ -3,6 +3,25 @@
     <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
         <item name="android:logo">@android:color/transparent</item>
         <item name="android:editTextBackground">@drawable/apptheme_edit_text_holo_light</item>
+        <item name="ptrHeaderStyle">@style/AppTheme.Widget.PtrHeader</item>
     </style>
+
+    <style name="AppTheme.Widget.PtrHeader" parent="android:Widget">
+        <item name="ptrProgressBarColor">@android:color/black</item>
+        <item name="ptrSmoothProgressBarStyle">
+            @style/AppTheme.Widget.PtrHeader.SmoothProgressBar</item>
+        <item name="ptrPullText">@string/get_random_comic</item>
+        <item name="ptrRefreshingText"/>
+        <item name="ptrReleaseText">@string/get_random_comic</item>
+    </style>
+
+    <style name="AppTheme.Widget.PtrHeader.SmoothProgressBar" parent="SmoothProgressBar">
+        <item name="spb_sections_count">1</item>
+        <item name="spb_colors">@array/spb_colors</item>
+    </style>
+
+    <array name="spb_colors">
+        <item>@android:color/transparent</item>
+    </array>
 
 </resources>

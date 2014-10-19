@@ -21,6 +21,7 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v4:20+'
+    compile 'com.github.chrisbanes.actionbarpulltorefresh:library:+'
     compile files('libs/gson-2.3.jar')
     compile files('libs/okhttp-2.0.0.jar')
     compile files('libs/okhttp-urlconnection-2.0.0.jar')

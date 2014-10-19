@@ -36,11 +36,15 @@ import com.squareup.picasso.Target;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Random;
 
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
+import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
 public class ComicFragment extends Fragment {
 
@@ -133,12 +137,10 @@ public class ComicFragment extends Fragment {
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
             }
 
             @Override
@@ -178,8 +180,10 @@ public class ComicFragment extends Fragment {
                         RelativeLayout.LayoutParams.MATCH_PARENT,
                         RelativeLayout.LayoutParams.WRAP_CONTENT);
                 params0.addRule(RelativeLayout.CENTER_VERTICAL);
+                final PullToRefreshLayout pullToRefreshLayout
+                        = new PullToRefreshLayout(getActivity());
+                pullToRefreshLayout.setLayoutParams(params0);
                 final ScrollView sv = new ScrollView(getActivity());
-                sv.setLayoutParams(params0);
                 final LinearLayout ll = new LinearLayout(getActivity());
                 final int hp = (int) getResources().getDimension(R.dimen.activity_horizontal_margin);
                 final int vp = (int) getResources().getDimension(R.dimen.activity_vertical_margin);
@@ -269,7 +273,21 @@ public class ComicFragment extends Fragment {
                 ll.addView(tv);
                 ll.addView(dateView);
                 sv.addView(ll);
-                rl.addView(sv);
+                pullToRefreshLayout.addView(sv);
+                ActionBarPullToRefresh.from(getActivity())
+                        .allChildrenArePullable()
+                        .listener(new OnRefreshListener() {
+
+                            @Override
+                            public void onRefreshStarted(View view) {
+                                final Random random = new Random();
+                                final int position = random.nextInt(num);
+                                mViewPager.setCurrentItem(position);
+                                pullToRefreshLayout.setRefreshComplete();
+                            }
+                        })
+                        .setup(pullToRefreshLayout);
+                rl.addView(pullToRefreshLayout);
                 container.addView(rl);
                 return rl;
             }
