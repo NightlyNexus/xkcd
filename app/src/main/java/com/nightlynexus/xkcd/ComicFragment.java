@@ -269,6 +269,7 @@ public class ComicFragment extends Fragment {
                             @Override
                             public void onBitmapFailed(Drawable drawable) {
                                 if (isDetached()) return;
+                                onFailure();
                             }
 
                             @Override
@@ -283,6 +284,10 @@ public class ComicFragment extends Fragment {
                     @Override
                     public void failure(RetrofitError retrofitError) {
                         if (isDetached()) return;
+                        onFailure();
+                    }
+
+                    private void onFailure() {
                         failedButton.setOnClickListener(new View.OnClickListener() {
 
                             @Override
