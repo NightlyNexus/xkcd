@@ -9,15 +9,14 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin">
+        android:layout_height="wrap_content">
 
         <ImageView
             android:id="@+id/previous"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:gravity="center"
             android:contentDescription="@string/previous_comic"
             android:src="@drawable/ic_action_previous_item"/>
 
@@ -25,9 +24,8 @@
             android:id="@+id/number_picker"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
             android:layout_weight="1"
+            android:gravity="center"
             android:imeOptions="flagNoExtractUi"
             android:inputType="number"/>
 
@@ -36,6 +34,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:gravity="center"
             android:contentDescription="@string/next_comic"
             android:src="@drawable/ic_action_next_item"/>
 

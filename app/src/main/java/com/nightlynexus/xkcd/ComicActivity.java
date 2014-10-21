@@ -2,8 +2,9 @@ package com.nightlynexus.xkcd;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 
-public class ComicActivity extends Activity {
+public class ComicActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

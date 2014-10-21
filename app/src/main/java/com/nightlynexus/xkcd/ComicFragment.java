@@ -7,8 +7,11 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.ShareActionProvider;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.Spanned;
@@ -26,7 +29,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,9 +44,6 @@ import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
-import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
-import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
 public class ComicFragment extends Fragment {
 
@@ -174,16 +173,10 @@ public class ComicFragment extends Fragment {
 
             @Override
             public Object instantiateItem(ViewGroup container, final int position) {
-                final RelativeLayout rl = new RelativeLayout(getActivity());
-                final RelativeLayout.LayoutParams params0
-                        = new RelativeLayout.LayoutParams(
-                        RelativeLayout.LayoutParams.MATCH_PARENT,
-                        RelativeLayout.LayoutParams.WRAP_CONTENT);
-                params0.addRule(RelativeLayout.CENTER_VERTICAL);
-                final PullToRefreshLayout pullToRefreshLayout
-                        = new PullToRefreshLayout(getActivity());
-                pullToRefreshLayout.setLayoutParams(params0);
+                final SwipeRefreshLayout swipeRefreshLayout
+                        = new SwipeRefreshLayout(getActivity());
                 final ScrollView sv = new ScrollView(getActivity());
+                sv.setFillViewport(true);
                 final LinearLayout ll = new LinearLayout(getActivity());
                 final int hp = (int) getResources().getDimension(R.dimen.activity_horizontal_margin);
                 final int vp = (int) getResources().getDimension(R.dimen.activity_vertical_margin);
@@ -205,7 +198,7 @@ public class ComicFragment extends Fragment {
                 titleView.setPadding(0, 0, 0,
                         (int) getResources().getDimension(R.dimen.padding_bottom_title));
                 titleView.setGravity(Gravity.CENTER);
-                titleView.setTypeface(titleView.getTypeface(), Typeface.BOLD);
+                titleView.setTextAppearance(getActivity(), R.style.TitleText);
                 progress.setVisibility(View.VISIBLE);
                 final ImageView iv = getImageView();
                 iv.setVisibility(View.GONE);
@@ -273,23 +266,20 @@ public class ComicFragment extends Fragment {
                 ll.addView(tv);
                 ll.addView(dateView);
                 sv.addView(ll);
-                pullToRefreshLayout.addView(sv);
-                ActionBarPullToRefresh.from(getActivity())
-                        .allChildrenArePullable()
-                        .listener(new OnRefreshListener() {
+                swipeRefreshLayout.addView(sv);
+                swipeRefreshLayout.setColorSchemeResources(android.R.color.black);
+                swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
-                            @Override
-                            public void onRefreshStarted(View view) {
-                                final Random random = new Random();
-                                final int position = random.nextInt(num);
-                                mViewPager.setCurrentItem(position);
-                                pullToRefreshLayout.setRefreshComplete();
-                            }
-                        })
-                        .setup(pullToRefreshLayout);
-                rl.addView(pullToRefreshLayout);
-                container.addView(rl);
-                return rl;
+                    @Override
+                    public void onRefresh() {
+                        final Random random = new Random();
+                        final int position = random.nextInt(num);
+                        mViewPager.setCurrentItem(position);
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                });
+                container.addView(swipeRefreshLayout);
+                return swipeRefreshLayout;
             }
 
             @Override public void destroyItem(ViewGroup container, int position,
@@ -335,7 +325,7 @@ public class ComicFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
         menuInflater.inflate(R.menu.comic, menu);
         MenuItem menuItem = menu.findItem(R.id.action_share);
-        mShareActionProvider = (ShareActionProvider) menuItem.getActionProvider();
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
         mShareActionProvider.setShareIntent(getShareIntent());
     }
 

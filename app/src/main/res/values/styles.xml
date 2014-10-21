@@ -1,27 +1,12 @@
 <resources>
 
-    <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
-        <item name="android:logo">@android:color/transparent</item>
-        <item name="android:editTextBackground">@drawable/apptheme_edit_text_holo_light</item>
-        <item name="ptrHeaderStyle">@style/AppTheme.Widget.PtrHeader</item>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorAccent">@android:color/black</item>
     </style>
 
-    <style name="AppTheme.Widget.PtrHeader" parent="android:Widget">
-        <item name="ptrProgressBarColor">@android:color/black</item>
-        <item name="ptrSmoothProgressBarStyle">
-            @style/AppTheme.Widget.PtrHeader.SmoothProgressBar</item>
-        <item name="ptrPullText">@string/get_random_comic</item>
-        <item name="ptrRefreshingText"/>
-        <item name="ptrReleaseText">@string/get_random_comic</item>
+    <style name="TitleText" parent="@android:style/TextAppearance.Small">
+        <item name="android:textSize">@dimen/title_text_size</item>
+        <item name="android:textStyle">bold</item>
     </style>
-
-    <style name="AppTheme.Widget.PtrHeader.SmoothProgressBar" parent="SmoothProgressBar">
-        <item name="spb_sections_count">1</item>
-        <item name="spb_colors">@array/spb_colors</item>
-    </style>
-
-    <array name="spb_colors">
-        <item>@android:color/transparent</item>
-    </array>
 
 </resources>
