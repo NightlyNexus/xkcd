@@ -23,11 +23,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,6 +53,7 @@ public class ComicFragment extends Fragment {
     private static final String KEY_POSITION = "KEY_POSITION";
 
     private ComicService mRestService;
+    private View mRetryFrame;
     private EditText mNumberPicker;
     private View mPreviousView;
     private View mNextView;
@@ -78,6 +79,7 @@ public class ComicFragment extends Fragment {
         mPreviousView = rootView.findViewById(R.id.previous);
         mNextView = rootView.findViewById(R.id.next);
         mViewPager = (ViewPager) rootView.findViewById(R.id.view_pager);
+        mRetryFrame = rootView.findViewById(R.id.retry_frame);
         return rootView;
     }
 
@@ -95,9 +97,13 @@ public class ComicFragment extends Fragment {
         } else {
             mRestService.getComicLatest(new Callback<Comic>() {
 
+                private final Callback<Comic> mCallback = this;
+
                 @Override
                 public void success(Comic comic, Response response) {
                     if (isDetached()) return;
+                    mRetryFrame.setVisibility(View.GONE);
+                    mViewPager.setVisibility(View.VISIBLE);
                     setupNumberPicker(comic.getNum());
                     setupAdapter(comic.getNum(), comic.getNum() - 1);
                 }
@@ -105,6 +111,16 @@ public class ComicFragment extends Fragment {
                 @Override
                 public void failure(RetrofitError retrofitError) {
                     if (isDetached()) return;
+                    mRetryFrame.findViewById(R.id.retry_button).setOnClickListener(
+                            new View.OnClickListener() {
+
+                        @Override
+                        public void onClick(View v) {
+                            mRestService.getComicLatest(mCallback);
+                        }
+                    });
+                    mViewPager.setVisibility(View.GONE);
+                    mRetryFrame.setVisibility(View.VISIBLE);
                 }
             });
         }
@@ -183,6 +199,11 @@ public class ComicFragment extends Fragment {
                 ll.setPadding(hp, vp, hp, vp);
                 final TextView titleView = new TextView(getActivity());
                 final ProgressBar progress = new ProgressBar(getActivity());
+                final Button failedButton = new Button(getActivity());
+                final String[] interblag = getResources().getStringArray(R.array.internet_names);
+                failedButton.setText(getString(R.string.retry_button_text_comic,
+                        interblag[new Random().nextInt(interblag.length)]));
+                failedButton.setVisibility(View.GONE);
                 final TextView tv = new TextView(getActivity());
                 final ScrollView.LayoutParams params1 = new ScrollView.LayoutParams(
                         ScrollView.LayoutParams.MATCH_PARENT,
@@ -194,6 +215,8 @@ public class ComicFragment extends Fragment {
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT);
                 params.gravity = Gravity.CENTER;
+                progress.setLayoutParams(params);
+                failedButton.setLayoutParams(params);
                 titleView.setLayoutParams(params);
                 titleView.setPadding(0, 0, 0,
                         (int) getResources().getDimension(R.dimen.padding_bottom_title));
@@ -208,6 +231,8 @@ public class ComicFragment extends Fragment {
                         (int) getResources().getDimension(R.dimen.padding_top_alt_text), 0, 0);
                 tv.setGravity(Gravity.CENTER);
                 mRestService.getComic(position + 1, new Callback<Comic>() {
+
+                    private final Callback<Comic> mCallback = this;
 
                     @Override
                     public void success(final Comic comic, Response response) {
@@ -258,10 +283,22 @@ public class ComicFragment extends Fragment {
                     @Override
                     public void failure(RetrofitError retrofitError) {
                         if (isDetached()) return;
+                        failedButton.setOnClickListener(new View.OnClickListener() {
+
+                            @Override
+                            public void onClick(View v) {
+                                failedButton.setVisibility(View.GONE);
+                                progress.setVisibility(View.VISIBLE);
+                                mRestService.getComic(position + 1, mCallback);
+                            }
+                        });
+                        progress.setVisibility(View.GONE);
+                        failedButton.setVisibility(View.VISIBLE);
                     }
                 });
                 ll.addView(titleView);
                 ll.addView(progress);
+                ll.addView(failedButton);
                 ll.addView(iv);
                 ll.addView(tv);
                 ll.addView(dateView);

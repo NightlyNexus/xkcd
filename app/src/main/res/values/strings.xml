@@ -8,5 +8,22 @@
     <string name="comic_content_description">xkcd comic</string>
     <string name="previous_comic">previous comic</string>
     <string name="next_comic">next comic</string>
+    <string name="retry_button_text">Get back on the intertubes and <b>Retry</b></string>
+    <string name="retry_button_text_comic">%1$s failed\nRetry</string>
+
+    <string-array name="internet_names">
+        <item>world wide web</item>
+        <item>internet</item>
+        <item>interweb</item>
+        <item>intersphere</item>
+        <item>intertubes</item>
+        <item>interblag</item>
+        <item>blogosphere</item>
+        <item>blagonet</item>
+        <item>blagosphere</item>
+        <item>blagoblag</item>
+        <item>webnet</item>
+        <item>webweb</item>
+    </string-array>
 
 </resources>
