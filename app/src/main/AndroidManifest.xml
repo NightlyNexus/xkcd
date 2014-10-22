@@ -13,11 +13,25 @@
         <activity
             android:name=".ComicActivity"
             android:label="@string/app_name"
+            android:launchMode="singleInstance"
             android:windowSoftInputMode="stateHidden" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http"
+                    android:host="xkcd.com" />
+                <data android:scheme="http"
+                    android:host="www.xkcd.com" />
+                <data android:scheme="https"
+                    android:host="xkcd.com" />
+                <data android:scheme="https"
+                    android:host="www.xkcd.com" />
             </intent-filter>
         </activity>
     </application>

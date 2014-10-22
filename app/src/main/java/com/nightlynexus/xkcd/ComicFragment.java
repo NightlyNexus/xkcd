@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.view.MenuItemCompat;
@@ -46,6 +47,8 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 public class ComicFragment extends Fragment {
+
+    public static final String KEY_COMIC_NUMBER_REQUESTED = "KEY_COMIC_NUMBER_REQUESTED";
 
     private static final String ENDPOINT = "http://xkcd.com";
     private static final String DIRECTORY_NAME = "xkcd";
@@ -105,7 +108,10 @@ public class ComicFragment extends Fragment {
                     mRetryFrame.setVisibility(View.GONE);
                     mViewPager.setVisibility(View.VISIBLE);
                     setupNumberPicker(comic.getNum());
-                    setupAdapter(comic.getNum(), comic.getNum() - 1);
+                    final int comicNumRequested
+                            = getArguments().getInt(KEY_COMIC_NUMBER_REQUESTED);
+                    setupAdapter(comic.getNum(),
+                            getSafeComicIndex(comicNumRequested, comic.getNum()));
                 }
 
                 @Override
@@ -316,7 +322,7 @@ public class ComicFragment extends Fragment {
                     public void onRefresh() {
                         final Random random = new Random();
                         final int position = random.nextInt(num);
-                        mViewPager.setCurrentItem(position);
+                        mViewPager.setCurrentItem(position, false);
                         swipeRefreshLayout.setRefreshing(false);
                     }
                 });
@@ -377,7 +383,11 @@ public class ComicFragment extends Fragment {
                 ? ENDPOINT : ENDPOINT + "/" + (mViewPager.getCurrentItem() + 1);
         final Intent intent = new Intent(android.content.Intent.ACTION_SEND);
         intent.setType("text/plain");
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+        } else {
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        }
         intent.putExtra(Intent.EXTRA_SUBJECT, ENDPOINT);
         intent.putExtra(Intent.EXTRA_TEXT, link);
         return intent;
@@ -388,6 +398,18 @@ public class ComicFragment extends Fragment {
         outState.putInt(KEY_MAX, mAdapter == null ? -1 : mAdapter.getCount());
         outState.putInt(KEY_POSITION, mAdapter == null ? -1 : mViewPager.getCurrentItem());
         super.onSaveInstanceState(outState);
+    }
+
+    private static int getSafeComicIndex(final int comicNumber, final int comicNumberMax) {
+        return ((comicNumber > 0 && comicNumber <= comicNumberMax)
+                ? comicNumber : comicNumberMax) - 1;
+    }
+
+    public void requestComicNumber(final int comicNumber) {
+        if (isDetached())
+            throw new RuntimeException(
+                    "This fragment has been detached and cannot update the current comic.");
+        mViewPager.setCurrentItem(getSafeComicIndex(comicNumber, mAdapter.getCount()), false);
     }
 
     private ImageView getImageView() {
