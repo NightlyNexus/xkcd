@@ -32,6 +32,10 @@
                     android:host="xkcd.com" />
                 <data android:scheme="https"
                     android:host="www.xkcd.com" />
+                <data android:scheme="http"
+                    android:host="m.xkcd.com" />
+                <data android:scheme="https"
+                    android:host="m.xkcd.com" />
             </intent-filter>
         </activity>
     </application>
