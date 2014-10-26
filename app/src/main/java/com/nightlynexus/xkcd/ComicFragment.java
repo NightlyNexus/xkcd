@@ -57,6 +57,7 @@ public class ComicFragment extends Fragment {
 
     private ComicService mRestService;
     private View mRetryFrame;
+    private View mNavBarComic;
     private EditText mNumberPicker;
     private View mPreviousView;
     private View mNextView;
@@ -78,6 +79,7 @@ public class ComicFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_comic, container, false);
+        mNavBarComic = rootView.findViewById(R.id.nav_bar_comic);
         mNumberPicker = (EditText) rootView.findViewById(R.id.number_picker);
         mPreviousView = rootView.findViewById(R.id.previous);
         mNextView = rootView.findViewById(R.id.next);
@@ -89,9 +91,7 @@ public class ComicFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mNumberPicker.setEnabled(false);
-        mPreviousView.setEnabled(false);
-        mNextView.setEnabled(false);
+        setNavBarComicAndChildrenEnabled(false);
         if (savedInstanceState != null && savedInstanceState.getInt(KEY_MAX) >= 0
                 && savedInstanceState.getInt(KEY_POSITION) >= 0) {
             setupNumberPicker(savedInstanceState.getInt(KEY_MAX));
@@ -185,9 +185,7 @@ public class ComicFragment extends Fragment {
                 mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
             }
         });
-        mPreviousView.setEnabled(true);
-        mNextView.setEnabled(true);
-        mNumberPicker.setEnabled(true);
+        setNavBarComicAndChildrenEnabled(true);
     }
 
     private void setupAdapter(final int num, final int position) {
@@ -253,13 +251,30 @@ public class ComicFragment extends Fragment {
                                                        Picasso.LoadedFrom from) {
                                 if (isDetached()) return;
                                 progress.setVisibility(View.GONE);
+                                iv.setImageBitmap(bitmap);
+                                iv.setTag(false);
+                                iv.setOnClickListener(new View.OnClickListener() {
+
+                                    @Override
+                                    public void onClick(View v) {
+                                        if ((Boolean) iv.getTag()) {
+                                            iv.setImageBitmap(bitmap);
+                                            iv.setTag(false);
+                                        } else {
+                                            iv.setImageBitmap(invert(bitmap));
+                                            iv.setTag(true);
+                                        }
+                                    }
+                                });
                                 iv.setOnLongClickListener(new View.OnLongClickListener() {
 
                                     @Override
                                     public boolean onLongClick(View v) {
+                                        final Bitmap bitmapSave
+                                                = (Boolean) iv.getTag() ? invert(bitmap) : bitmap;
                                         final String comicName
                                                 = position + 1 + " -- " + comic.getTitle();
-                                        if (saveBitmap(bitmap, comicName)) {
+                                        if (saveBitmap(bitmapSave, comicName)) {
                                             Toast.makeText(getActivity(),
                                                     getString(R.string.saved_comic_confirmation,
                                                             comicName),
@@ -268,7 +283,6 @@ public class ComicFragment extends Fragment {
                                         return true;
                                     }
                                 });
-                                iv.setImageBitmap(bitmap);
                                 iv.setVisibility(View.VISIBLE);
                             }
 
@@ -369,6 +383,13 @@ public class ComicFragment extends Fragment {
         mViewPager.setCurrentItem(position);
     }
 
+    private void setNavBarComicAndChildrenEnabled(final boolean enabled) {
+        mNumberPicker.setEnabled(enabled);
+        mPreviousView.setEnabled(enabled);
+        mNextView.setEnabled(enabled);
+        mNavBarComic.setEnabled(enabled);
+    }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
         menuInflater.inflate(R.menu.comic, menu);
@@ -437,6 +458,29 @@ public class ComicFragment extends Fragment {
         dateView.setGravity(Gravity.CENTER);
         dateView.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
         return dateView;
+    }
+
+    private static Bitmap invert(Bitmap original) {
+        // Create mutable Bitmap to invert, argument true makes it mutable
+        Bitmap inversion = original.copy(Bitmap.Config.ARGB_4444, true);
+
+        // Get info about Bitmap
+        int width = inversion.getWidth();
+        int height = inversion.getHeight();
+        int pixels = width * height;
+
+        // Get original pixels
+        int[] pixel = new int[pixels];
+        inversion.getPixels(pixel, 0, width, 0, 0, width, height);
+
+        // Modify pixels
+        final int RGB_MASK = 0x00FFFFFF;
+        for (int i = 0; i < pixels; i++)
+            pixel[i] ^= RGB_MASK;
+        inversion.setPixels(pixel, 0, width, 0, 0, width, height);
+
+        // Return inverted Bitmap
+        return inversion;
     }
 
     private boolean saveBitmap(final Bitmap bmp, final String comicName) {
