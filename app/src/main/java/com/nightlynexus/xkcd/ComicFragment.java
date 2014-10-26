@@ -234,6 +234,7 @@ public class ComicFragment extends Fragment {
                 tv.setPadding(0,
                         (int) getResources().getDimension(R.dimen.padding_top_alt_text), 0, 0);
                 tv.setGravity(Gravity.CENTER);
+                tv.setTextIsSelectable(true);
                 mRestService.getComic(position + 1, new Callback<Comic>() {
 
                     private final Callback<Comic> mCallback = this;
