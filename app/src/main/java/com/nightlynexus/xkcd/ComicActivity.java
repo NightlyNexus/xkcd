@@ -50,6 +50,9 @@ public class ComicActivity extends ActionBarActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        mFragment.requestComicNumber(getComicNumberRequested());
+        final int comicNumber = getComicNumberRequested();
+        if (comicNumber > 0) {
+            mFragment.requestComicNumber(comicNumber);
+        }
     }
 }
