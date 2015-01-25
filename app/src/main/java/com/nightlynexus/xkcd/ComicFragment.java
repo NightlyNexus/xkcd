@@ -48,8 +48,6 @@ import retrofit.client.Response;
 
 public class ComicFragment extends Fragment {
 
-    public static final String KEY_COMIC_NUMBER_REQUESTED = "KEY_COMIC_NUMBER_REQUESTED";
-
     private static final String ENDPOINT = "http://xkcd.com";
     private static final String DIRECTORY_NAME = "xkcd";
     private static final String KEY_MAX = "KEY_MAX";
@@ -64,6 +62,7 @@ public class ComicFragment extends Fragment {
     private ViewPager mViewPager;
     private PagerAdapter mAdapter;
     private ShareActionProvider mShareActionProvider = null;
+    private int mPendngRequestedComicNumber = -1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -108,10 +107,8 @@ public class ComicFragment extends Fragment {
                     mRetryFrame.setVisibility(View.GONE);
                     mViewPager.setVisibility(View.VISIBLE);
                     setupNumberPicker(comic.getNum());
-                    final int comicNumRequested
-                            = getArguments().getInt(KEY_COMIC_NUMBER_REQUESTED);
                     setupAdapter(comic.getNum(),
-                            getSafeComicIndex(comicNumRequested, comic.getNum()));
+                            getSafeComicIndex(comic.getNum(), comic.getNum()));
                 }
 
                 @Override
@@ -188,7 +185,11 @@ public class ComicFragment extends Fragment {
         setNavBarComicAndChildrenEnabled(true);
     }
 
-    private void setupAdapter(final int num, final int position) {
+    private void setupAdapter(final int num, int position) {
+        if (mPendngRequestedComicNumber >= 0) {
+            position = getSafeComicIndex(mPendngRequestedComicNumber, num);
+            mPendngRequestedComicNumber = -1;
+        }
         mAdapter = new PagerAdapter() {
 
             @Override
@@ -431,7 +432,11 @@ public class ComicFragment extends Fragment {
         if (isDetached())
             throw new RuntimeException(
                     "This fragment has been detached and cannot update the current comic.");
-        mViewPager.setCurrentItem(getSafeComicIndex(comicNumber, mAdapter.getCount()), false);
+        if (mAdapter != null) {
+            mViewPager.setCurrentItem(getSafeComicIndex(comicNumber, mAdapter.getCount()), false);
+        } else {
+            mPendngRequestedComicNumber = comicNumber;
+        }
     }
 
     private ImageView getImageView() {

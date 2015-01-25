@@ -6,24 +6,21 @@ import android.support.v7.app.ActionBarActivity;
 
 public class ComicActivity extends ActionBarActivity {
 
-    private static final String TAG_COMIC_FRAGMENT = "TAG_COMIC_FRAGMENT";
+    private static final String TAG_COMIC_FRAGMENT = "TAG_FRAGMENT_COMIC";
 
-    private ComicFragment mFragment;
+    private ComicFragment mFragment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comic);
-        if (savedInstanceState == null) {
-            final Bundle bundle = new Bundle();
-            bundle.putInt(ComicFragment.KEY_COMIC_NUMBER_REQUESTED, getComicNumberRequested());
+        mFragment = (ComicFragment) getFragmentManager().findFragmentByTag(TAG_COMIC_FRAGMENT);
+        if (mFragment == null) {
             mFragment = new ComicFragment();
-            mFragment.setArguments(bundle);
+            mFragment.requestComicNumber(getComicNumberRequested());
             getFragmentManager().beginTransaction()
                     .add(R.id.container, mFragment, TAG_COMIC_FRAGMENT)
                     .commit();
-        } else {
-            mFragment = (ComicFragment) getFragmentManager().findFragmentByTag(TAG_COMIC_FRAGMENT);
         }
     }
 
