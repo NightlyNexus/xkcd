@@ -103,7 +103,7 @@ public class ComicFragment extends Fragment {
 
                 @Override
                 public void success(Comic comic, Response response) {
-                    if (isDetached()) return;
+                    if (!isAdded()) return;
                     mRetryFrame.setVisibility(View.GONE);
                     mViewPager.setVisibility(View.VISIBLE);
                     setupNumberPicker(comic.getNum());
@@ -113,7 +113,7 @@ public class ComicFragment extends Fragment {
 
                 @Override
                 public void failure(RetrofitError retrofitError) {
-                    if (isDetached()) return;
+                    if (!isAdded()) return;
                     mRetryFrame.findViewById(R.id.retry_button).setOnClickListener(
                             new View.OnClickListener() {
 
@@ -242,7 +242,7 @@ public class ComicFragment extends Fragment {
 
                     @Override
                     public void success(final Comic comic, Response response) {
-                        if (isDetached()) return;
+                        if (!isAdded()) return;
                         titleView.setText(comic.getTitle());
                         tv.setText(comic.getAlt());
                         dateView.setText(comic.getDate());
@@ -251,7 +251,7 @@ public class ComicFragment extends Fragment {
                             @Override
                             public void onBitmapLoaded(final Bitmap bitmap,
                                                        Picasso.LoadedFrom from) {
-                                if (isDetached()) return;
+                                if (!isAdded()) return;
                                 progress.setVisibility(View.GONE);
                                 iv.setImageBitmap(bitmap);
                                 iv.setTag(false);
@@ -290,13 +290,13 @@ public class ComicFragment extends Fragment {
 
                             @Override
                             public void onBitmapFailed(Drawable drawable) {
-                                if (isDetached()) return;
+                                if (!isAdded()) return;
                                 onFailure();
                             }
 
                             @Override
                             public void onPrepareLoad(Drawable drawable) {
-                                if (isDetached()) return;
+                                if (!isAdded()) return;
                             }
                         };
                         tv.setTag(target);
@@ -305,7 +305,7 @@ public class ComicFragment extends Fragment {
 
                     @Override
                     public void failure(RetrofitError retrofitError) {
-                        if (isDetached()) return;
+                        if (!isAdded()) return;
                         onFailure();
                     }
 
@@ -429,11 +429,16 @@ public class ComicFragment extends Fragment {
     }
 
     public void requestComicNumber(final int comicNumber) {
-        if (isDetached())
-            throw new RuntimeException(
-                    "This fragment has been detached and cannot update the current comic.");
         if (mAdapter != null) {
-            mViewPager.setCurrentItem(getSafeComicIndex(comicNumber, mAdapter.getCount()), false);
+            if (comicNumber > mAdapter.getCount()) {
+                final Intent intentRestart = new Intent(getActivity(), ComicActivity.class);
+                intentRestart.setAction(ComicActivity.ACTION_UPDATE_COMIC);
+                getActivity().finish();
+                getActivity().startActivity(intentRestart);
+            } else {
+                mViewPager.setCurrentItem(
+                        getSafeComicIndex(comicNumber, mAdapter.getCount()), false);
+            }
         } else {
             mPendngRequestedComicNumber = comicNumber;
         }

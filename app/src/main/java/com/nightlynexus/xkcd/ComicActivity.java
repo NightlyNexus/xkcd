@@ -6,6 +6,10 @@ import android.support.v7.app.ActionBarActivity;
 
 public class ComicActivity extends ActionBarActivity {
 
+    public static final String ACTION_UPDATE_COMIC
+            = ComicActivity.class + "." + "ACTION_UPDATE_COMIC";
+    public static final String EXTRA_COMIC_NUMBER = "EXTRA_COMIC_NUMBER";
+
     private static final String TAG_COMIC_FRAGMENT = "TAG_FRAGMENT_COMIC";
 
     private ComicFragment mFragment = null;
@@ -26,21 +30,26 @@ public class ComicActivity extends ActionBarActivity {
 
     private int getComicNumberRequested() {
         final Intent intent = getIntent();
-        if (!Intent.ACTION_VIEW.equals(intent.getAction())
-                || (intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) {
-            // Activity launched not from url or from history
+        if ((intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) {
             return -1;
         }
-        String url = intent.getDataString();
-        if (url.lastIndexOf("/") == url.length() - 1) {
-            url = url.substring(0, url.length() - 1);
+        final String action = intent.getAction();
+        if (Intent.ACTION_VIEW.equals(action)) {
+            String url = intent.getDataString();
+            if (url.lastIndexOf("/") == url.length() - 1) {
+                url = url.substring(0, url.length() - 1);
+            }
+            url = url.substring(url.lastIndexOf("/") + 1);
+            try {
+                return Integer.parseInt(url);
+            } catch (NumberFormatException nfe) {
+                return -1;
+            }
         }
-        url = url.substring(url.lastIndexOf("/") + 1);
-        try {
-            return Integer.parseInt(url);
-        } catch (NumberFormatException nfe) {
-            return -1;
+        if (ACTION_UPDATE_COMIC.equals(action)) {
+            return intent.getIntExtra(EXTRA_COMIC_NUMBER, -1);
         }
+        return -1;
     }
 
     @Override
